@@ -1,41 +1,46 @@
 import os
-import aiohttp
-from pyrogram import Client, filters
+import requests
+import time
 
-API_ID = int(os.environ.get("API_ID", "0"))
-API_HASH = os.environ.get("API_HASH")
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 API_KEY = os.environ.get("API_KEY")
 
-bot = Client(
-    "gplink_bot",
-    api_id=API_ID,
-    api_hash=API_HASH,
-    bot_token=BOT_TOKEN
-)
+BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
-@bot.on_message(filters.command("start"))
-async def start(bot, message):
-    await message.reply(
-        f"👋 Hello {message.chat.first_name}\n\n"
-        "Send me any link and I will convert it into a short earning link 💰"
-    )
+def get_updates(offset=None):
+    url = BASE_URL + "/getUpdates"
+    params = {"timeout": 100}
+    if offset:
+        params["offset"] = offset
+    return requests.get(url, params=params).json()
 
-@bot.on_message(filters.regex(r"https?://"))
-async def link_handler(bot, message):
-    link = message.text
+def send_message(chat_id, text):
+    url = BASE_URL + "/sendMessage"
+    data = {"chat_id": chat_id, "text": text}
+    requests.post(url, data=data)
+
+def shorten_link(link):
     url = "https://gplinks.in/api"
     params = {"api": API_KEY, "url": link}
+    r = requests.get(url, params=params).json()
+    return r.get("shortenedUrl", "Error generating link")
 
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as resp:
-                data = await resp.json()
-                if "shortenedUrl" in data:
-                    await message.reply(f"🔗 Your short link:\n{data['shortenedUrl']}")
-                else:
-                    await message.reply("⚠️ Failed to generate link. Try again later.")
-    except Exception as e:
-        await message.reply("❌ Error occurred while shortening link.")
+offset = None
+send_message(os.environ.get("ADMIN_CHAT_ID"), "✅ Bot started")
 
-bot.run()
+while True:
+    updates = get_updates(offset)
+    if "result" in updates:
+        for update in updates["result"]:
+            offset = update["update_id"] + 1
+            message = update.get("message")
+            if not message:
+                continue
+            chat_id = message["chat"]["id"]
+            text = message.get("text", "")
+            if text.startswith("http"):
+                short = shorten_link(text)
+                send_message(chat_id, f"🔗 Short link:\n{short}")
+            else:
+                send_message(chat_id, "Send me a link 🔗")
+    time.sleep(2)
