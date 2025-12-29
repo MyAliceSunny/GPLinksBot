@@ -1,30 +1,28 @@
 import os
 import time
 import requests
-# ---- SIMPLE USER DATABASE ----
+
 users = {}
 
 def get_user(chat_id):
     if chat_id not in users:
-        users[chat_id] = {
-            "balance": 0,
-            "upi": None
-        }
+        users[chat_id] = {"balance": 0, "upi": None}
 
 def get_balance(chat_id):
     return users.get(chat_id, {}).get("balance", 0)
 
 def add_balance(chat_id, amount):
+    get_user(chat_id)
     users[chat_id]["balance"] += amount
 
 def set_upi(chat_id, upi):
+    get_user(chat_id)
     users[chat_id]["upi"] = upi
-    
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-API_KEY = os.environ.get("API_KEY")
+
+BOT_TOKEN = "8182545842:AAEM8YuxlCy1PUggh8pE4uYU7L2S1q4ftE4"
+API_KEY = "9ef4aadd63ffb7759f17d3b0486d45cfa9d9dba4"
 
 BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
-
 def send_message(chat_id, text):
     url = BASE_URL + "/sendMessage"
     data = {"chat_id": chat_id, "text": text}
