@@ -19,8 +19,7 @@ def add_balance(chat_id, amount):
 
 def set_upi(chat_id, upi):
     users[chat_id]["upi"] = upi
-from storage import get_user, add_balance, get_balance, set_upi
-
+    
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 API_KEY = os.environ.get("API_KEY")
 
