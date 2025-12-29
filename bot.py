@@ -25,14 +25,16 @@ def shorten_link(link):
     r = requests.get(url, params=params).json()
     return r.get("shortenedUrl", "❌ Error generating link")
 
-offset = None
+offset = 0
 print("Bot started...")
 
 while True:
     updates = get_updates(offset)
+
     if "result" in updates:
         for update in updates["result"]:
-            offset = update["update_id"] + 1
+            offset = update["update_id"] + 1  # 🔥 VERY IMPORTANT
+
             message = update.get("message")
             if not message:
                 continue
@@ -44,6 +46,6 @@ while True:
                 short = shorten_link(text)
                 send_message(chat_id, f"🔗 Your short link:\n{short}")
             else:
-                send_message(chat_id, "👋 Send me any link to shorten 🔗")
+                send_message(chat_id, "👋 Send me any link to shorten")
 
-    time.sleep(2)
+    time.sleep(1)
