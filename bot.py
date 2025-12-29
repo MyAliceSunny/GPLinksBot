@@ -1,6 +1,24 @@
 import os
 import time
 import requests
+# ---- SIMPLE USER DATABASE ----
+users = {}
+
+def get_user(chat_id):
+    if chat_id not in users:
+        users[chat_id] = {
+            "balance": 0,
+            "upi": None
+        }
+
+def get_balance(chat_id):
+    return users.get(chat_id, {}).get("balance", 0)
+
+def add_balance(chat_id, amount):
+    users[chat_id]["balance"] += amount
+
+def set_upi(chat_id, upi):
+    users[chat_id]["upi"] = upi
 from storage import get_user, add_balance, get_balance, set_upi
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
