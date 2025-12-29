@@ -1,6 +1,7 @@
 import os
 import time
 import requests
+from storage import get_user, add_balance, get_balance, set_upi
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 API_KEY = os.environ.get("API_KEY")
@@ -42,10 +43,35 @@ while True:
             chat_id = message["chat"]["id"]
             text = message.get("text", "")
 
-            if text.startswith("http"):
-                short = shorten_link(text)
-                send_message(chat_id, f"🔗 Your short link:\n{short}")
-            else:
-                send_message(chat_id, "👋 Send me any link to shorten")
+            get_user(chat_id)  # ensure user exists
+
+if text == "/balance":
+    bal = get_balance(chat_id)
+    send_message(chat_id, f"💰 Your Balance: ₹{bal}\nMinimum withdrawal: ₹500")
+
+elif text == "/withdraw":
+    bal = get_balance(chat_id)
+    if bal < 500:
+        send_message(chat_id, "❌ Minimum ₹500 required for withdrawal")
+    else:
+        send_message(chat_id, "💳 Send your UPI ID (example: name@paytm)")
+
+elif "@" in text and len(text) > 5:
+    set_upi(chat_id, text)
+    send_message(chat_id, "✅ UPI saved! Payment will be processed manually.")
+
+elif text.startswith("http"):
+    short = shorten_link(text)
+
+    # 👇 YAHI EARNING ADD HOTI HAI (TEMP DEMO)
+    add_balance(chat_id, 10)
+
+    send_message(
+        chat_id,
+        f"🔗 Your short link:\n{short}\n\n💸 ₹10 added to your balance"
+    )
+
+else:
+    send_message(chat_id, "👋 Send me any link to shorten")
 
     time.sleep(1)
